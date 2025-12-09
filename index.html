@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ Frontend Billing System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#eef1f7;
+      font-family: Arial, sans-serif;
+    }
+
+    .card{
+      background: #fff;
+      width: 360px;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    h2{
+      text-align:center;
+      margin-bottom:18px;
+    }
+
+    label{
+      font-size:14px;
+      font-weight:600;
+      margin-top:10px;
+      display:block;
+    }
+
+    input{
+      width:100%;
+      padding:10px;
+      margin-top:6px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:15px;
+    }
+
+    .btn{
+      width:100%;
+      margin-top:14px;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#3458eb;
+      color:white;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:16px;
+      font-size:14px;
+    }
+
+    th, td{
+      text-align:center;
+      padding:6px;
+      border-bottom:1px solid #ddd;
+    }
+
+    th{
+      background:#f3f5fb;
+    }
+
+    .summary{
+      margin-top:14px;
+      font-size:15px;
+    }
+
+    .summary div{
+      display:flex;
+      justify-content:space-between;
+      margin-top:6px;
+      font-weight:600;
+    }
+
+    .total{
+      font-size:17px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Billing System</h2>
+
+    <label>Item Name</label>
+    <input type="text" id="item">
+
+    <label>Price (₹)</label>
+    <input type="number" id="price">
+
+    <label>Quantity</label>
+    <input type="number" id="qty">
+
+    <button class="btn" onclick="addItem()">Add Item</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="billTable"></tbody>
+    </table>
+
+    <div class="summary">
+      <div><span>Subtotal:</span><span>₹ <span id="sub">0</span></span></div>
+      <div><span>GST (18%):</span><span>₹ <span id="gst">0</span></span></div>
+      <div class="total"><span>Grand Total:</span><span>₹ <span id="grand">0</span></span></div>
+    </div>
+
+    <button class="btn" onclick="generateBill()">Generate Bill (C++)</button>
+  </div>
+
+
+  <!-- ✅ CLEAN C++ WASM LOADER -->
+  <script>
+    var Module = {
+      onRuntimeInitialized: function () {
+        console.log("C++ WebAssembly Loaded Successfully");
+      }
+    };
+  </script>
+
+  <script src="billing.js"></script>
+
+  <script>
+    let subtotal = 0;
+
+    function addItem(){
+      let item = document.getElementById("item").value;
+      let price = Number(document.getElementById("price").value);
+      let qty = Number(document.getElementById("qty").value);
+
+      if(item === "" || price === 0 || qty === 0){
+        alert("Enter all fields properly!");
+        return;
+      }
+
+      let total = price * qty;
+      subtotal += total;
+
+      let row = `
+        <tr>
+          <td>${item}</td>
+          <td>₹${price}</td>
+          <td>${qty}</td>
+          <td>₹${total}</td>
+        </tr>
+      `;
+
+      document.getElementById("billTable").innerHTML += row;
+      document.getElementById("sub").innerText = subtotal.toFixed(2);
+
+      document.getElementById("item").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("qty").value = "";
+    }
+
+    function generateBill(){
+      let sub = Number(document.getElementById("sub").innerText);
+
+      let gst = Module.ccall(
+        "calculateGST",
+        "number",
+        ["number"],
+        [sub]
+      );
+
+      let grand = Module.ccall(
+        "calculateGrandTotal",
+        "number",
+        ["number"],
+        [sub]
+      );
+
+      document.getElementById("gst").innerText = gst.toFixed(2);
+      document.getElementById("grand").innerText = grand.toFixed(2);
+    }
+  </script>
+
+</body>
+</html>
